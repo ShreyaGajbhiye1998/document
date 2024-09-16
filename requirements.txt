@@ -1,0 +1,7 @@
+openai
+streamlit
+azure-ai-formrecognizer
+azure-core
+pillow
+SQLAlchemy==1.4.39
+psycopg2-binary==2.9.9
