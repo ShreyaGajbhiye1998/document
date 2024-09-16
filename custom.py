@@ -8,13 +8,13 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from PIL import Image
 
 
-config_path = 'config.json'
-with open(config_path, 'r') as config_file:
-    config = json.load(config_file)
+# config_path = 'config.json'
+# with open(config_path, 'r') as config_file:
+#     config = json.load(config_file)
 
-azure_document_api_key = config['azure_document_api_key']
-azure_document_endpoint = config['azure_document_endpoint']
-custom_model_id = config['custom_model_id']
+azure_document_api_key = st.secrets['azure_document_api_key']
+azure_document_endpoint = st.secrets['azure_document_endpoint']
+custom_model_id = st.secrets['custom_model_id']
 
 
 document_analysis_client = DocumentAnalysisClient(
