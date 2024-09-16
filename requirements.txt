@@ -1,6 +1,7 @@
 openai
 streamlit
 azure-ai-formrecognizer
+azure-ai-documentintelligence
 azure-core
 pillow
 SQLAlchemy==1.4.39
