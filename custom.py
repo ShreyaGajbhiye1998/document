@@ -145,6 +145,11 @@ def create_excel(fields_df, tables_list):
 
 # Streamlit Application
 
+def reset_session_state():
+    st.session_state.fields_df = pd.DataFrame()
+    st.session_state.tables_list = []
+    st.session_state.data_extracted = False
+
 
 if 'fields_df' not in st.session_state:
     st.session_state.fields_df = pd.DataFrame()
@@ -154,6 +159,9 @@ if 'tables_list' not in st.session_state:
 
 if 'data_extracted' not in st.session_state:
     st.session_state.data_extracted = False
+
+if 'uploaded_file_name' not in st.session_state:
+    st.session_state.uploaded_file_name = None
 
 st.set_page_config(
     page_title = "MyPay Document Scanner",
@@ -170,6 +178,10 @@ st.title("MyPay Document Scanner")
 uploaded_file = st.file_uploader("Upload your invoice (PDF, JPG, PNG)", type=["pdf", "jpg", "jpeg", "png"])
 
 if uploaded_file:
+    if st.session_state.uploaded_file_name != uploaded_file.name:
+        reset_session_state()
+        st.session_state.uploaded_file_name = uploaded_file.name
+        
     if not st.session_state.data_extracted:
         with st.spinner("Extracting data from the invoice..."):
             invoice_data = analyze_invoice(uploaded_file)
