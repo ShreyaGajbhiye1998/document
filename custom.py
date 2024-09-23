@@ -145,6 +145,16 @@ def create_excel(fields_df, tables_list):
 
 # Streamlit Application
 
+
+if 'fields_df' not in st.session_state:
+    st.session_state.fields_df = pd.DataFrame()
+
+if 'tables_list' not in st.session_state:
+    st.session_state.tables_list = []
+
+if 'data_extracted' not in st.session_state:
+    st.session_state.data_extracted = False
+
 st.set_page_config(
     page_title = "MyPay Document Scanner",
     page_icon = "page_icon.jpeg",
@@ -160,36 +170,59 @@ st.title("MyPay Document Scanner")
 uploaded_file = st.file_uploader("Upload your invoice (PDF, JPG, PNG)", type=["pdf", "jpg", "jpeg", "png"])
 
 if uploaded_file:
-    st.write("Extracting data from the invoice...")
-    
-    invoice_data = analyze_invoice(uploaded_file)
-    custom_data = analyze_custom_model(uploaded_file)
-    layout_data = layout_invoice(uploaded_file)
+    if not st.session_state.data_extracted:
+        with st.spinner("Extracting data from the invoice..."):
+            invoice_data = analyze_invoice(uploaded_file)
+            custom_data = analyze_custom_model(uploaded_file)
+            layout_data = layout_invoice(uploaded_file)
 
-    # Extract fields and tables
-    if invoice_data and invoice_data.documents:
-        fields_df = extract_field_data(invoice_data, custom_data)
-        if not fields_df.empty:
-            st.write("Extracted Field Data:")
-            st.data_editor(fields_df, num_rows = "dynamic")
+        # Extract fields and tables
+        if invoice_data and invoice_data.documents:
+            fields_df = extract_field_data(invoice_data, custom_data)
+            if not fields_df.empty:
+                st.session_state.fields_df = fields_df 
+                # st.write("Extracted Field Data:")
+                # st.session_state.fields_df = st.data_editor(st.session_state.fields_df, num_rows = "dynamic")
+        
+        if layout_data:
+            tables_list = extract_table_data(layout_data)
+            if tables_list:
+                st.session_state.tables_list = tables_list
+                # st.write("Extracted Tables:")
+                # for idx, table_df in enumerate(st.session_state.tables_list):
+                #     st.write(f"Table {idx + 1}:")
+                #     st.session_state.tables_list[idx] = st.data_editor(table_df, num_rows="dynamic")
+                #     # st.dataframe(table_df)
+        st.session_state.data_extracted = True
     
-    if layout_data:
-        tables_list = extract_table_data(layout_data)
-        if tables_list:
-            st.write("Extracted Tables:")
-            for idx, table_df in enumerate(tables_list):
-                st.write(f"Table {idx + 1}:")
-                tables_list[idx] = st.data_editor(table_df, num_rows="dynamic")
-                # st.dataframe(table_df)
+    # Display and edit fields DataFrame
+    if not st.session_state.fields_df.empty:
+        st.write("Extracted Field Data:")
+        st.session_state.fields_df = st.data_editor(
+            st.session_state.fields_df, num_rows="dynamic"
+        )
+
+    # Display and edit tables
+    if st.session_state.tables_list:
+        st.write("Extracted Tables:")
+        for idx, table_df in enumerate(st.session_state.tables_list):
+            st.write(f"Table {idx + 1}:")
+            st.session_state.tables_list[idx] = st.data_editor(
+                table_df, num_rows="dynamic"
+            )
+    
 
     if st.button('Finalize the Edits'):
-        if invoice_data and layout_data:
-            excel_file = create_excel(fields_df, tables_list)
-            st.download_button(
-                label="Download Excel file",
-                data=excel_file,
-                file_name="extracted_invoice_data.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        with st.spinner('Preparing download...'):
+            # if invoice_data and layout_data:
+            #     excel_file = create_excel(fields_df, tables_list)
+            if not st.session_state.fields_df.empty and st.session_state.tables_list:
+                excel_file = create_excel(st.session_state.fields_df, st.session_state.tables_list)
+                st.download_button(
+                    label="Download Excel file",
+                    data=excel_file,
+                    file_name="extracted_invoice_data.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 else:
     st.info("Please upload an invoice to extract data.")
