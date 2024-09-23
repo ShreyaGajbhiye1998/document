@@ -171,7 +171,7 @@ if uploaded_file:
         fields_df = extract_field_data(invoice_data, custom_data)
         if not fields_df.empty:
             st.write("Extracted Field Data:")
-            st.dataframe(fields_df)
+            st.data_editor(fields_df, num_rows = "dynamic")
     
     if layout_data:
         tables_list = extract_table_data(layout_data)
@@ -179,7 +179,8 @@ if uploaded_file:
             st.write("Extracted Tables:")
             for idx, table_df in enumerate(tables_list):
                 st.write(f"Table {idx + 1}:")
-                st.dataframe(table_df)
+                tables_list[idx] = st.data_editor(table_df, num_rows="dynamic")
+                # st.dataframe(table_df)
 
     if st.button('Finalize the Edits'):
         if invoice_data and layout_data:
